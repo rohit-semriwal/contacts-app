@@ -8,8 +8,8 @@ class DBHelper {
   Database database;
 
   DBHelper() {
-    this.dbname = "mycontacts.db";
-    this.tableName = "contacts";
+    this.dbname = "contactsapp.db";
+    this.tableName = "mycontacts";
   }
 
   Future openConnection() async {
@@ -24,7 +24,7 @@ class DBHelper {
         print("Database already open!");
       },
       onCreate: (Database db, int version) async {
-        String sql = "CREATE TABLE " + this.tableName + "(id INTEGER PRIMARY KEY, name TEXT, email TEXT, phoneno TEXT)";
+        String sql = "CREATE TABLE " + this.tableName + "(id TEXT PRIMARY KEY, name TEXT, email TEXT, phoneno TEXT)";
         await db.execute(sql);
 
         this.database = db;
@@ -43,7 +43,7 @@ class DBHelper {
   Future addNewContact(Contact contact) async {
     var database = this.database;
 
-    int id = contact.id;
+    String id = contact.id.toString();
     String fullname = contact.fullname.toString();
     String email = contact.email.toString();
     String phoneno = contact.phoneno.toString();
@@ -60,15 +60,13 @@ class DBHelper {
     });
   }
 
-  Future fetchAllContacts() async {
+  Future<List<Map<String, dynamic>>> fetchAllContacts() async {
     Database database = this.database;
 
-    await database.query(
+    return await database.query(
       this.tableName,
       columns: ['id', 'name', 'email', 'phoneno'],
-    ).then((value) {
-      print(value.toString());
-    });
+    );
   }
 
   Future deleteContact(Contact contact) async {
@@ -79,6 +77,21 @@ class DBHelper {
       where: 'id = ' + contact.id.toString(),
     ).then((value) {
       print('Record Deleted!');
+    });
+  }
+
+  Future<int> getMaxId() async {
+    Database database = this.database;
+    await database.query(
+      this.tableName,
+      columns: ['id'],
+    ).then((value) {
+      if(value.length > 0) {
+        return value.length;
+      }
+      else {
+        return 0;
+      }
     });
   }
 
